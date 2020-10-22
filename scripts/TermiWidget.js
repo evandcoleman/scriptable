@@ -9,6 +9,10 @@ const user = "evan";
 // WEATHER_API_KEY, you need an Open Weather API Key
 // You can get one for free at: https://home.openweathermap.org/api_keys (account needed).
 const WEATHER_API_KEY = "";
+const DEFAULT_LOCATION = {
+  latitude: 0,
+  longitude: 0
+};
 const TAUTULLI_API_BASE = "";
 const TAUTULLI_API_KEY = "";
 const HOME_ASSISTANT_API_BASE = "";
@@ -136,6 +140,9 @@ async function fetchWeather() {
       location = await cache.read('location');
     }
   }
+  if (!location) {
+    location = DEFAULT_LOCATION;
+  }
   const address = await Location.reverseGeocode(location.latitude, location.longitude);
   const url = "https://api.openweathermap.org/data/2.5/onecall?lat=" + location.latitude + "&lon=" + location.longitude + "&exclude=minutely,hourly,alerts&units=imperial&lang=en&appid=" + WEATHER_API_KEY;
   const data = await fetchJson(`weather_${address[0].locality}`, url);
@@ -208,7 +215,7 @@ async function fetchNextSatPass() {
 }
 
 async function fetchJson(key, url, headers) {
-  const cached = await cache.read(key);
+  const cached = await cache.read(key, 5);
   if (cached) {
     return cached;
   }
@@ -222,7 +229,7 @@ async function fetchJson(key, url, headers) {
     return resp;
   } catch (error) {
     try {
-      return cache.read(key);
+      return cache.read(key, 5);
     } catch (error) {
       console.log(`Couldn't fetch ${url}`);
     }

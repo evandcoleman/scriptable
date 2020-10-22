@@ -11,15 +11,17 @@ function Cache(name) {
   }
 }
 
-Cache.prototype.read = async function(key) {
+Cache.prototype.read = async function(key, expirationMinutes) {
   try {
     const path = this.fm.joinPath(this.cachePath, key);
     await this.fm.downloadFileFromiCloud(path);
     const createdAt = this.fm.creationDate(path);
     
-    if ((new Date()) - createdAt > 300000) {
-      this.fm.remove(path);
-      return null;
+    if (expirationMinutes) {
+      if ((new Date()) - createdAt > (expirationMinutes * 60000)) {
+        this.fm.remove(path);
+        return null;
+      }
     }
     
     const value = this.fm.readString(path);
