@@ -149,12 +149,12 @@ async function fetchWeather() {
 
   return {
     location: address[0].locality,
-    icon: getWeatherEmoji(data.current.weather[0].id, ((new Date()).getTime() / 1000) >= data.current.sunset),
-    description: data.current.weather[0].main,
-    temperature: Math.round(data.current.temp),
-    wind: Math.round(data.current.wind_speed),
-    high: Math.round(data.daily[0].temp.max),
-    low: Math.round(data.daily[0].temp.min),
+    icon: getWeatherEmoji(data.weather[0].id, ((new Date()).getTime() / 1000) >= data.sys.sunset),
+    description: data.weather[0].main,
+    temperature: Math.round(data.main.temp),
+    wind: Math.round(data.wind.speed),
+    high: Math.round(data.main.temp_max),
+    low: Math.round(data.main.temp_min),
   }
 }
 
