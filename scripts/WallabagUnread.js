@@ -49,7 +49,7 @@ async function createWidget(data) {
   headerRow.addSpacer(10)
 
   const title =
-    config.widgetFamily === 'small' ? 'Instapaper' : 'Wallabag: Unread'
+    config.widgetFamily === 'small' ? 'Wallabag' : 'Wallabag: Unread'
   const headerTitle = headerRow.addText(title)
   headerTitle.font = Font.semiboldSystemFont(15)
   headerTitle.textColor = Color.black()
