@@ -59,9 +59,5 @@ function createWidget(pretitle, title, subtitle, color) {
 //   subTxt.textColor = Color.white()
   subTxt.textOpacity = 0.9
   subTxt.font = Font.systemFont(18)
-//   let ImgUrl = "https://cdn.id7x.xyz/scriptable/bottom-right.png"
-//   let mmm = new Request(ImgUrl);
-//   let bacc = await mmm.loadImage();
-//   w.backgroundImage = bacc
   return w
 }
