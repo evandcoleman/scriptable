@@ -18,6 +18,5 @@ Copy MLB.js into your Scriptable iCloud Drive folder (or copy & paste into a new
 
 TermiWidget            |  MLB
 :-------------------------:|:-------------------------:
-![](images/termiwidget.png) |  ![](images/mlb-expanded-0.jpg)
-							|	![](images/mlb-expanded-1.jpg)
+![](images/termiwidget.png) |  <img src="images/mlb-expanded-0.jpg" width="400"><img src="images/mlb-expanded-1.jpg" width="400">
 
