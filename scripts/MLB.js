@@ -2,6 +2,7 @@
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-blue; icon-glyph: baseball-ball;
 
+// Find team abbreviation here: https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Baseball/Team_abbreviations
 const TEAM = "NYY";
 
 // simple, expanded
@@ -73,6 +74,7 @@ const widget = await (async (layout) => {
       throw new Error(`Invalid layout type ${layout}`);
   }
 })(LAYOUT);
+widget.url = "atbat://"
 Script.setWidget(widget);
 Script.complete();
 
@@ -103,6 +105,7 @@ async function createExpandedWidget() {
     awayStack.addSpacer(6);
     const awayRuns = awayStack.addText(`${game.linescore.teams.away.runs || 0}`);
     awayRuns.font = Font.boldSystemFont(28);
+    awayRuns.textColor = Color.white();
 
     const spacer = scoreStack.addSpacer();
     spacer.length = 6;
@@ -114,6 +117,7 @@ async function createExpandedWidget() {
     homeStack.addSpacer(6);
     const homeRuns = homeStack.addText(`${game.linescore.teams.home.runs || 0}`);
     homeRuns.font = Font.boldSystemFont(28);
+    homeRuns.textColor = Color.white();
   } else {
     upperStack.layoutVertically();
 
@@ -147,6 +151,7 @@ async function createExpandedWidget() {
     inningStack.addSpacer(4);
     const statusText = inningStack.addText(game.linescore.currentInning.toString());
     statusText.font = Font.mediumSystemFont(22);
+    statusText.textColor = Color.white();
 
     const basesStack = statusStack.addStack();
     basesStack.layoutHorizontally();
@@ -190,6 +195,7 @@ async function createExpandedWidget() {
     nameCountStack.centerAlignContent();
     const playerNameText = nameCountStack.addText(game.linescore.offense.batter.fullName);
     playerNameText.font = Font.regularSystemFont(12);
+    playerNameText.textColor = Color.white();
     // playerNameText.minimumScaleFactor = 0.9;
     nameCountStack.addSpacer(4);
     const countText = nameCountStack.addText(`(${game.linescore.balls}-${game.linescore.strikes})`);
@@ -205,6 +211,7 @@ async function createExpandedWidget() {
     namePitchesStack.centerAlignContent();
     const pitcherNameText = namePitchesStack.addText(game.linescore.defense.pitcher.fullName);
     pitcherNameText.font = Font.regularSystemFont(12);
+    pitcherNameText.textColor = Color.white();
     // pitcherNameText.minimumScaleFactor = 0.9;
     namePitchesStack.addSpacer(4);
     const pitchesThrown = game.linescore.defense.pitcher.stats.filter(stat => stat.type.displayName === 'gameLog' && stat.group.displayName === 'pitching')[0].stats.pitchesThrown;
@@ -221,6 +228,7 @@ async function createExpandedWidget() {
     nameCountStack.centerAlignContent();
     const playerNameText = nameCountStack.addText(game.teams.away.probablePitcher.fullName);
     playerNameText.font = Font.regularSystemFont(12);
+    playerNameText.textColor = Color.white();
     // playerNameText.minimumScaleFactor = 0.9;
     nameCountStack.addSpacer(4);
     const winnerStats = game.teams.away.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
@@ -237,6 +245,7 @@ async function createExpandedWidget() {
     namePitchesStack.centerAlignContent();
     const pitcherNameText = namePitchesStack.addText(game.teams.home.probablePitcher.fullName);
     pitcherNameText.font = Font.regularSystemFont(12);
+    pitcherNameText.textColor = Color.white();
     // pitcherNameText.minimumScaleFactor = 0.9;
     namePitchesStack.addSpacer(4);
     const loserStats = game.teams.home.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
@@ -253,6 +262,7 @@ async function createExpandedWidget() {
     nameCountStack.centerAlignContent();
     const playerNameText = nameCountStack.addText(game.decisions.winner.fullName);
     playerNameText.font = Font.regularSystemFont(12);
+    playerNameText.textColor = Color.white();
     // playerNameText.minimumScaleFactor = 0.9;
     nameCountStack.addSpacer(4);
     const winnerStats = game.decisions.winner.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
@@ -269,6 +279,7 @@ async function createExpandedWidget() {
     namePitchesStack.centerAlignContent();
     const pitcherNameText = namePitchesStack.addText(game.decisions.loser.fullName);
     pitcherNameText.font = Font.regularSystemFont(12);
+    pitcherNameText.textColor = Color.white();
     // pitcherNameText.minimumScaleFactor = 0.9;
     namePitchesStack.addSpacer(4);
     const loserStats = game.decisions.loser.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
@@ -306,10 +317,12 @@ async function createSimpleWidget() {
   awayStack.addSpacer();
   const awayName = awayStack.addText(game.teams.away.team.abbreviation);
   awayName.font = Font.title2();
+  awayName.textColor = Color.white();
   awayStack.addSpacer();
   if (!isPreGame) {
     const awayRuns = awayStack.addText(`${game.linescore.teams.away.runs || 0}`);
     awayRuns.font = Font.title2();
+    awayRuns.textColor = Color.white();
   }
 
   const spacer = scoreStack.addSpacer();
@@ -322,10 +335,12 @@ async function createSimpleWidget() {
   homeStack.addSpacer();
   const homeName = homeStack.addText(game.teams.home.team.abbreviation);
   homeName.font = Font.title2();
+  homeName.textColor = Color.white();
   homeStack.addSpacer();
   if (!isPreGame) {
     const homeRuns = homeStack.addText(`${game.linescore.teams.home.runs || 0}`);
     homeRuns.font = Font.title2();
+    homeRuns.textColor = Color.white();
   }
 
   mainStack.addSpacer();
