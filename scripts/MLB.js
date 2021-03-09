@@ -2,7 +2,6 @@
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-blue; icon-glyph: baseball-ball;
 
-// Find team abbreviation here: https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Baseball/Team_abbreviations
 const TEAM = "NYY";
 
 // simple, expanded
@@ -534,11 +533,14 @@ async function fetchTeam(team) {
     const games = scoreboard.filter(game => {
       const away = game.teams.away.team.abbreviation;
       const home = game.teams.home.team.abbreviation;
+      console.log(`${away} vs ${home}`)
 
       return team === away || team === home;
     });
 
-    game = games[0];
+    if (games.length > 0) {
+      game = games[0];
+    }
     days += 1;
   }
 
@@ -554,7 +556,7 @@ async function fetchScoreboard(inDays) {
   const df = new DateFormatter();
   df.dateFormat = "yyyy-MM-dd";
   const now = new Date();
-  const date = now.getHours() < 5 ? new Date(now.getTime() - 43200000) : new Date(now.getTime() + (86400000 * (inDays || 0)));
+  const date = now.getHours() < 5 ? new Date(now.getTime() - 43200000 + (86400000 * (inDays || 0))) : new Date(now.getTime() + (86400000 * (inDays || 0)));
   const dateString = df.string(date);
   const url = `https://statsapi.mlb.com/api/v1/schedule?date=${dateString}&language=en&hydrate=team(league),venue(location,timezone),linescore(matchup,runners,positions),decisions,homeRuns,probablePitcher,flags,review,seriesStatus,person,stats,broadcasts(all)&sportId=1`;
   const data = await fetchJson(`mlb_scores_${dateString}`, url);
@@ -570,6 +572,7 @@ async function fetchTeamLogo(team) {
 async function fetchJson(key, url, headers) {
   const cached = await cache.read(key, 1);
   if (cached) {
+    console.log(`Cache hit url: ${url}`);
     return cached;
   }
 
