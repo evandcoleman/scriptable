@@ -1,0 +1,23 @@
+{
+  "name": "scriptable-scripts",
+  "version": "1.0.0",
+  "description": "A collection of Scriptable.app scripts'",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evandcoleman/scriptable.git"
+  },
+  "author": "Evan Coleman <e@edc.me> (http://edc.me)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/evandcoleman/scriptable/issues"
+  },
+  "homepage": "https://github.com/evandcoleman/scriptable#readme",
+  "devDependencies": {
+    "terser-webpack-plugin": "^5.1.1",
+    "webpack": "^5.24.4"
+  }
+}

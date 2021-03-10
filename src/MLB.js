@@ -2,6 +2,12 @@
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-blue; icon-glyph: baseball-ball;
 
+/////////////////////////////////////////
+//
+//  Configuration
+//
+/////////////////////////////////////////
+
 // Find team abbreviation here: https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Baseball/Team_abbreviations
 const TEAM = "NYY";
 
@@ -10,58 +16,24 @@ const LAYOUT = "expanded";
 
 /////////////////////////////////////////
 //
-//  Cache
+//  Do not edit below this line!
 //
 /////////////////////////////////////////
 
-class Cache {
-  constructor(name) {
-    this.fm = FileManager.iCloud();
-    this.cachePath = this.fm.joinPath(this.fm.documentsDirectory(), name);
+/******/
 
-    if (!this.fm.fileExists(this.cachePath)) {
-      this.fm.createDirectory(this.cachePath)
-    }
-  }
+import Cache from './lib/cache';
+import Updater from './lib/updater';
 
-  async read(key, expirationMinutes) {
-    try {
-      const path = this.fm.joinPath(this.cachePath, key);
-      await this.fm.downloadFileFromiCloud(path);
-      const createdAt = this.fm.creationDate(path);
-      
-      if (expirationMinutes) {
-        if ((new Date()) - createdAt > (expirationMinutes * 60000)) {
-          this.fm.remove(path);
-          return null;
-        }
-      }
-      
-      const value = this.fm.readString(path);
-    
-      try {
-        return JSON.parse(value);
-      } catch(error) {
-        return value;
-      }
-    } catch(error) {
-      return null;
-    }
-  };
+const scriptVersion = "0.1.0";
+const sourceRepo = "evandcoleman/scriptable";
+const scriptName = "MLB.js";
 
-  write(key, value) {
-    const path = this.fm.joinPath(this.cachePath, key.replace('/', '-'));
-    console.log(`Caching to ${path}...`);
-
-    if (typeof value === 'string' || value instanceof String) {
-      this.fm.writeString(path, value);
-    } else {
-      this.fm.writeString(path, JSON.stringify(value));
-    }
-  }
-}
-
-///////////////////////////////////////////
+/////////////////////////////////////////
+//
+//  Script
+//
+/////////////////////////////////////////
 
 const cache = new Cache("mlbWidgetCache");
 const widget = await (async (layout) => {
@@ -226,15 +198,17 @@ async function createExpandedWidget() {
     const nameCountStack = lowerStack.addStack();
     nameCountStack.layoutHorizontally();
     nameCountStack.centerAlignContent();
-    const playerNameText = nameCountStack.addText(game.teams.away.probablePitcher.fullName);
+    const playerNameText = nameCountStack.addText(game.teams.away.probablePitcher?.fullName || 'TBD');
     playerNameText.font = Font.regularSystemFont(12);
     playerNameText.textColor = Color.white();
     // playerNameText.minimumScaleFactor = 0.9;
-    nameCountStack.addSpacer(4);
-    const winnerStats = game.teams.away.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
-    const countText = nameCountStack.addText(`(${winnerStats.wins}-${winnerStats.losses})`);
-    countText.font = Font.regularSystemFont(10);
-    countText.textColor = Color.lightGray();
+    if (game.teams.away.probablePitcher) {
+      nameCountStack.addSpacer(4);
+      const winnerStats = game.teams.away.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
+      const countText = nameCountStack.addText(`(${winnerStats.wins}-${winnerStats.losses})`);
+      countText.font = Font.regularSystemFont(10);
+      countText.textColor = Color.lightGray();
+    }
     nameCountStack.addSpacer();
 
     const pitcherTitleText = lowerStack.addText("Home Pitcher:")
@@ -243,15 +217,17 @@ async function createExpandedWidget() {
     const namePitchesStack = lowerStack.addStack();
     namePitchesStack.layoutHorizontally();
     namePitchesStack.centerAlignContent();
-    const pitcherNameText = namePitchesStack.addText(game.teams.home.probablePitcher.fullName);
+    const pitcherNameText = namePitchesStack.addText(game.teams.home.probablePitcher?.fullName || 'TBD');
     pitcherNameText.font = Font.regularSystemFont(12);
     pitcherNameText.textColor = Color.white();
     // pitcherNameText.minimumScaleFactor = 0.9;
-    namePitchesStack.addSpacer(4);
-    const loserStats = game.teams.home.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
-    const pitchesThrownText = namePitchesStack.addText(`(${loserStats.wins}-${loserStats.losses})`);
-    pitchesThrownText.font = Font.regularSystemFont(10);
-    pitchesThrownText.textColor = Color.lightGray();
+    if (game.teams.home.probablePitcher) {
+      namePitchesStack.addSpacer(4);
+      const loserStats = game.teams.home.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
+      const pitchesThrownText = namePitchesStack.addText(`(${loserStats.wins}-${loserStats.losses})`);
+      pitchesThrownText.font = Font.regularSystemFont(10);
+      pitchesThrownText.textColor = Color.lightGray();
+    }
     namePitchesStack.addSpacer();
   } else if (isPostGame) {
     const abTitleText = lowerStack.addText("Winning Pitcher:")
@@ -567,8 +543,8 @@ async function fetchTeamLogo(team) {
   return req.loadImage();
 }
 
-async function fetchJson(key, url, headers) {
-  const cached = await cache.read(key, 1);
+async function fetchJson(key, url, headers, cacheTimeout) {
+  const cached = await cache.read(key, cacheTimeout || 1);
   if (cached) {
     return cached;
   }
@@ -582,7 +558,7 @@ async function fetchJson(key, url, headers) {
     return resp;
   } catch (error) {
     try {
-      return cache.read(key, 1);
+      return cache.read(key, cacheTimeout || 1);
     } catch (error) {
       console.log(`Couldn't fetch ${url}`);
     }

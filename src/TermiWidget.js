@@ -19,7 +19,9 @@ const HOME_ASSISTANT_API_BASE = "";
 const HOME_ASSISTANT_API_KEY = "";
 const UPCOMING_SAT_PASS_URL = "";
 
-const Cache = importModule('cache');
+/******/
+
+import Cache from './lib/cache';
 
 const cache = new Cache("termiWidgetCache");
 const data = await fetchData();
