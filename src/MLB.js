@@ -4,12 +4,18 @@
 
 /////////////////////////////////////////
 //
-//  Configuration
+//  Configuration - PLEASE READ
 //
 /////////////////////////////////////////
 
+// PLEASE READ - To set your team:
+// Long-press on the widget on your homescreen, then tap "Edit Widget"
+// Input your team abbreviation in the "Parameter" field.
 // Find team abbreviation here: https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Baseball/Team_abbreviations
-const TEAM = "NYY";
+
+/////////////////////////
+
+const TEAM = args.widgetParameter || 'NYY';
 
 // simple, expanded
 const LAYOUT = "expanded";
@@ -25,7 +31,7 @@ const LAYOUT = "expanded";
 import Cache from './lib/cache';
 import Updater from './lib/updater';
 
-const scriptVersion = 4;
+const scriptVersion = 5;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -543,7 +549,7 @@ async function fetchScoreboard(inDays) {
   const date = now.getHours() < 5 ? new Date(now.getTime() - 43200000) : new Date(now.getTime() + (86400000 * (inDays || 0)));
   const dateString = df.string(date);
   const url = `https://statsapi.mlb.com/api/v1/schedule?date=${dateString}&language=en&hydrate=team(league),venue(location,timezone),linescore(matchup,runners,positions),decisions,homeRuns,probablePitcher,flags,review,seriesStatus,person,stats,broadcasts(all)&sportId=1`;
-  const data = await fetchJson(`mlb_scores_${dateString}`, url);
+  const data = await fetchJson(`mlb_scores`, url);
 
   return data.dates[0].games;
 }
