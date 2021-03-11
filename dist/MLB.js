@@ -45,7 +45,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 
 
 
-const scriptVersion = 8;
+const scriptVersion = 9;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -665,13 +665,13 @@ async function fetchJson({ url, headers, cache, cacheKey, cacheExpiration }) {
     }
     const resp = await req.loadJSON();
     if (cache && cacheKey) {
-      cache.write(key, resp);
+      cache.write(cacheKey, resp);
     }
     return resp;
   } catch (error) {
     if (cache && cacheKey) {
       try {
-        return cache.read(key, cacheTimeout || 1);
+        return cache.read(cacheKey, cacheTimeout || 1);
       } catch (error) {
         console.log(`Couldn't fetch ${url}`);
       }
