@@ -1,35 +1,54 @@
 export default class Updater {
-  constructor({ repo }) {
+  constructor(repo) {
     this.repo = repo;
     this.fm = FileManager.iCloud();
   }
 
-  async checkForUpdate(name, currentVersion) {
+  async checkForUpdate(name, version) {
     const latestVersion = await this.getLatestVersion(name);
 
-    if (latestVersion !== currentVersion) {
+    if (latestVersion > version) {
+      console.log(`Version ${latestVersion} is greater than ${version}. Updating...`);
+      await this.updateScript(name, latestVersion);
 
+      return true;
     }
+
+    console.log(`Version ${latestVersion} is equal to ${version}. Skipping update.`);
+
+    return false;
   }
 
   async getLatestVersion(name) {
-    const url = `https://api.github.com/repos/${sourceRepo}/commits?per_page=1&path=scripts/${name}`;
-    const data = await fetchJson(`${name.split('.')[0]}_updater`, url, null, 10);
+    const url = `https://api.github.com/repos/${this.repo}/releases`;
+    const req = new Request(url);
+    const data = await req.loadJSON();
 
     if (!data || data.length === 0) {
       return null;
     }
 
-    return data[0].sha;
+    const matches = data
+      .filter(x => x.tag_name.startsWith(`${name}-`) && !x.draft && !x.prerelease)
+      .sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+
+    if (!matches|| matches.length === 0) {
+      return null;
+    }
+
+    const release = matches[0];
+    const version = release.tag_name.split('-').slice(-1)[0];
+
+    return parseInt(version, 10);
   }
 
-  async updateScript(name) {
-    const url = `https://api.github.com/repos/${sourceRepo}/contents/scripts/${name}`;
+  async updateScript(name, version) {
+    const url = `https://raw.githubusercontent.com/${this.repo}/${name}-${version}/dist/${name}.js`;
     const req = new Request(url);
-    const { content } = await req.loadJSON();
+    const content = await req.loadString();
 
-    const path = this.fm.joinPath(this.fm.documentsDirectory(), 'MLB_test.js');
+    const path = this.fm.joinPath(this.fm.documentsDirectory(), name + '.js');
 
-    this.fm.writeString(path, atob(content));
+    this.fm.writeString(path, content);
   }
 }

@@ -25,9 +25,9 @@ const LAYOUT = "expanded";
 import Cache from './lib/cache';
 import Updater from './lib/updater';
 
-const scriptVersion = "0.1.0";
+const scriptVersion = 2;
 const sourceRepo = "evandcoleman/scriptable";
-const scriptName = "MLB.js";
+const scriptName = "MLB";
 
 /////////////////////////////////////////
 //
@@ -36,18 +36,27 @@ const scriptName = "MLB.js";
 /////////////////////////////////////////
 
 const cache = new Cache("mlbWidgetCache");
-const widget = await (async (layout) => {
-  switch (layout) {
-    case 'simple':
-      return createSimpleWidget();
-    case 'expanded':
-      return createExpandedWidget();
-    default:
-      throw new Error(`Invalid layout type ${layout}`);
-  }
-})(LAYOUT);
-widget.url = "atbat://"
-Script.setWidget(widget);
+
+try {
+  const updater = new Updater(sourceRepo);
+  const widget = await (async (layout) => {
+    switch (layout) {
+      case 'simple':
+        return createSimpleWidget();
+      case 'expanded':
+        return createExpandedWidget();
+      default:
+        throw new Error(`Invalid layout type ${layout}`);
+    }
+  })(LAYOUT);
+  widget.url = "atbat://"
+  Script.setWidget(widget);
+
+  await updater.checkForUpdate(scriptName, scriptVersion);
+} catch (error) {
+  console.log(error);
+}
+
 Script.complete();
 
 async function createExpandedWidget() {

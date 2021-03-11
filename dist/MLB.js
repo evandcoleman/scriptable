@@ -28,16 +28,17 @@ const LAYOUT = "expanded";
 /***/ 208:
 /***/ ((module, __unused_webpack___webpack_exports__, __webpack_require__) => {
 
-module.exports = (async () => {
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 /* harmony import */ var _lib_cache__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(59);
+/* harmony import */ var _lib_updater__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(331);
 
 
 
 
 
-const scriptVersion = "0.1.0";
+const scriptVersion = 2;
 const sourceRepo = "evandcoleman/scriptable";
-const scriptName = "MLB.js";
+const scriptName = "MLB";
 
 /////////////////////////////////////////
 //
@@ -46,18 +47,27 @@ const scriptName = "MLB.js";
 /////////////////////////////////////////
 
 const cache = new _lib_cache__WEBPACK_IMPORTED_MODULE_0__/* .default */ .Z("mlbWidgetCache");
-const widget = await (async (layout) => {
-  switch (layout) {
-    case 'simple':
-      return createSimpleWidget();
-    case 'expanded':
-      return createExpandedWidget();
-    default:
-      throw new Error(`Invalid layout type ${layout}`);
-  }
-})(LAYOUT);
-widget.url = "atbat://"
-Script.setWidget(widget);
+
+try {
+  const updater = new _lib_updater__WEBPACK_IMPORTED_MODULE_1__/* .default */ .Z(sourceRepo);
+  const widget = await (async (layout) => {
+    switch (layout) {
+      case 'simple':
+        return createSimpleWidget();
+      case 'expanded':
+        return createExpandedWidget();
+      default:
+        throw new Error(`Invalid layout type ${layout}`);
+    }
+  })(LAYOUT);
+  widget.url = "atbat://"
+  Script.setWidget(widget);
+
+  await updater.checkForUpdate(scriptName, scriptVersion);
+} catch (error) {
+  console.log(error);
+}
+
 Script.complete();
 
 async function createExpandedWidget() {
@@ -575,7 +585,8 @@ async function fetchJson(key, url, headers, cacheTimeout) {
   }
 }
 
-})();
+__webpack_handle_async_dependencies__();
+}, 1);
 
 /***/ }),
 
@@ -583,7 +594,7 @@ async function fetchJson(key, url, headers, cacheTimeout) {
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "Z": () => /* binding */ Cache
+/* harmony export */   "Z": () => (/* binding */ Cache)
 /* harmony export */ });
 class Cache {
   constructor(name) {
@@ -633,6 +644,69 @@ class Cache {
 }
 
 
+/***/ }),
+
+/***/ 331:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Z": () => (/* binding */ Updater)
+/* harmony export */ });
+class Updater {
+  constructor(repo) {
+    this.repo = repo;
+    this.fm = FileManager.iCloud();
+  }
+
+  async checkForUpdate(name, version) {
+    const latestVersion = await this.getLatestVersion(name);
+
+    if (latestVersion > version) {
+      console.log(`Version ${latestVersion} is greater than ${version}. Updating...`);
+      await this.updateScript(name, latestVersion);
+
+      return true;
+    }
+
+    console.log(`Version ${latestVersion} is equal to ${version}. Skipping update.`);
+
+    return false;
+  }
+
+  async getLatestVersion(name) {
+    const url = `https://api.github.com/repos/${this.repo}/releases`;
+    const req = new Request(url);
+    const data = await req.loadJSON();
+
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    const matches = data
+      .filter(x => x.tag_name.startsWith(`${name}-`) && !x.draft && !x.prerelease)
+      .sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+
+    if (!matches|| matches.length === 0) {
+      return null;
+    }
+
+    const release = matches[0];
+    const version = release.tag_name.split('-').slice(-1)[0];
+
+    return parseInt(version, 10);
+  }
+
+  async updateScript(name, version) {
+    const url = `https://raw.githubusercontent.com/${this.repo}/${name}-${version}/dist/${name}.js`;
+    const req = new Request(url);
+    const content = await req.loadString();
+
+    const path = this.fm.joinPath(this.fm.documentsDirectory(), name + '.js');
+
+    this.fm.writeString(path, content);
+  }
+}
+
 /***/ })
 
 /******/ 	});
@@ -661,6 +735,82 @@ class Cache {
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/async module */
+/******/ 	(() => {
+/******/ 		var webpackThen = typeof Symbol === "function" ? Symbol("webpack then") : "__webpack_then__";
+/******/ 		var webpackExports = typeof Symbol === "function" ? Symbol("webpack exports") : "__webpack_exports__";
+/******/ 		var completeQueue = (queue) => {
+/******/ 			if(queue) {
+/******/ 				queue.forEach(fn => fn.r--);
+/******/ 				queue.forEach(fn => fn.r-- ? fn.r++ : fn());
+/******/ 			}
+/******/ 		}
+/******/ 		var completeFunction = fn => !--fn.r && fn();
+/******/ 		var queueFunction = (queue, fn) => queue ? queue.push(fn) : completeFunction(fn);
+/******/ 		var wrapDeps = (deps) => (deps.map((dep) => {
+/******/ 			if(dep !== null && typeof dep === "object") {
+/******/ 				if(dep[webpackThen]) return dep;
+/******/ 				if(dep.then) {
+/******/ 					var queue = [], result;
+/******/ 					dep.then((r) => {
+/******/ 						obj[webpackExports] = r;
+/******/ 						completeQueue(queue);
+/******/ 						queue = 0;
+/******/ 					});
+/******/ 					var obj = { [webpackThen]: (fn, reject) => { queueFunction(queue, fn); dep.catch(reject); } };
+/******/ 					return obj;
+/******/ 				}
+/******/ 			}
+/******/ 			return { [webpackThen]: (fn) => { completeFunction(fn); }, [webpackExports]: dep };
+/******/ 		}));
+/******/ 		__webpack_require__.a = (module, body, hasAwait) => {
+/******/ 			var queue = hasAwait && [];
+/******/ 			var exports = module.exports;
+/******/ 			var currentDeps;
+/******/ 			var outerResolve;
+/******/ 			var reject;
+/******/ 			var isEvaluating = true;
+/******/ 			var nested = false;
+/******/ 			var whenAll = (deps, onResolve, onReject) => {
+/******/ 				if (nested) return;
+/******/ 				nested = true;
+/******/ 				onResolve.r += deps.length;
+/******/ 				deps.map((dep, i) => {
+/******/ 					dep[webpackThen](onResolve, onReject);
+/******/ 				});
+/******/ 				nested = false;
+/******/ 			};
+/******/ 			var promise = new Promise((resolve, rej) => {
+/******/ 				reject = rej;
+/******/ 				outerResolve = () => {
+/******/ 					resolve(exports);
+/******/ 					completeQueue(queue);
+/******/ 					queue = 0;
+/******/ 				};
+/******/ 			});
+/******/ 			promise[webpackExports] = exports;
+/******/ 			promise[webpackThen] = (fn, rejectFn) => {
+/******/ 				if (isEvaluating) { return completeFunction(fn); }
+/******/ 				if (currentDeps) whenAll(currentDeps, fn, rejectFn);
+/******/ 				queueFunction(queue, fn);
+/******/ 				promise.catch(rejectFn);
+/******/ 			};
+/******/ 			module.exports = promise;
+/******/ 			body((deps) => {
+/******/ 				if(!deps) return outerResolve();
+/******/ 				currentDeps = wrapDeps(deps);
+/******/ 				var fn, result;
+/******/ 				var promise = new Promise((resolve, reject) => {
+/******/ 					fn = () => (resolve(result = currentDeps.map(d => d[webpackExports])))
+/******/ 					fn.r = 0;
+/******/ 					whenAll(currentDeps, fn, reject);
+/******/ 				});
+/******/ 				return fn.r ? promise : result;
+/******/ 			}).then(outerResolve, reject);
+/******/ 			isEvaluating = false;
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -675,13 +825,15 @@ class Cache {
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
 /******/ 	
 /************************************************************************/
+/******/ 	
 /******/ 	// startup
-/******/ 	// Load entry module
-/******/ 	__webpack_require__(208);
+/******/ 	// Load entry module and return exports
+/******/ 	var __webpack_exports__ = __webpack_require__(208);
 /******/ 	// This entry module used 'module' so it can't be inlined
+/******/ 	
 /******/ })()
 ;
