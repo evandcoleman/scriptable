@@ -42,7 +42,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 
 
 
-const scriptVersion = 5;
+const scriptVersion = 6;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -560,7 +560,7 @@ async function fetchScoreboard(inDays) {
   const date = now.getHours() < 5 ? new Date(now.getTime() - 43200000) : new Date(now.getTime() + (86400000 * (inDays || 0)));
   const dateString = df.string(date);
   const url = `https://statsapi.mlb.com/api/v1/schedule?date=${dateString}&language=en&hydrate=team(league),venue(location,timezone),linescore(matchup,runners,positions),decisions,homeRuns,probablePitcher,flags,review,seriesStatus,person,stats,broadcasts(all)&sportId=1`;
-  const data = await fetchJson(`mlb_scores`, url);
+  const data = await fetchJson(`mlb_scores_${TEAM}`, url);
 
   return data.dates[0].games;
 }
