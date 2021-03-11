@@ -25,7 +25,7 @@ const LAYOUT = "expanded";
 import Cache from './lib/cache';
 import Updater from './lib/updater';
 
-const scriptVersion = 3;
+const scriptVersion = 4;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -145,7 +145,9 @@ async function createExpandedWidget() {
     outsStack.layoutHorizontally();
     const outImages = getOutsImages(game);
     for (let index in outImages) {
-      outsStack.addSpacer(index == 0 ? null : index === 2 ? 0 : 12);
+      if (index > 0) {
+        outsStack.addSpacer(index == 0 ? null : index === 2 ? 0 : 12);
+      }
       const widgetImage = outsStack.addImage(outImages[index]);
       widgetImage.imageSize = new Size(6, 6);
     }
