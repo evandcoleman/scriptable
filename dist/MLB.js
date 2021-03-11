@@ -45,7 +45,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 
 
 
-const scriptVersion = 9;
+const scriptVersion = 10;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -455,18 +455,18 @@ function getBasesImage(game) {
   ctx.setFillColor(new Color("#FFA500"));
   ctx.setLineWidth(2);
 
-  const firstBasePath = new Path();
-  firstBasePath.addLines([
+  const thirdBasePath = new Path();
+  thirdBasePath.addLines([
     new Point(0, side / 2),
     new Point(baseHyp / 2, (side / 2) + (baseHyp / 2)),
     new Point(baseHyp, side / 2),
     new Point(baseHyp / 2, (side / 2) - (baseHyp / 2))
   ]);
-  firstBasePath.closeSubpath();
-  ctx.addPath(firstBasePath);
+  thirdBasePath.closeSubpath();
+  ctx.addPath(thirdBasePath);
   ctx.strokePath();
-  if (onFirst) {
-    ctx.addPath(firstBasePath);
+  if (onThird) {
+    ctx.addPath(thirdBasePath);
     ctx.fillPath();
   }
 
@@ -485,18 +485,18 @@ function getBasesImage(game) {
     ctx.fillPath();
   }
 
-  const thirdBasePath = new Path();
-  thirdBasePath.addLines([
+  const firstBasePath = new Path();
+  firstBasePath.addLines([
     new Point((side / 2) + spaceX, side / 2),
     new Point(((side / 2) + spaceX) + (baseHyp / 2), (side / 2) + (baseHyp / 2)),
     new Point(((side / 2) + spaceX) + baseHyp, side / 2),
     new Point(((side / 2) + spaceX) + (baseHyp / 2), (side / 2) - (baseHyp / 2))
   ]);
-  thirdBasePath.closeSubpath();
-  ctx.addPath(thirdBasePath);
+  firstBasePath.closeSubpath();
+  ctx.addPath(firstBasePath);
   ctx.strokePath();
-  if (onThird) {
-    ctx.addPath(thirdBasePath);
+  if (onFirst) {
+    ctx.addPath(firstBasePath);
     ctx.fillPath();
   }
 
