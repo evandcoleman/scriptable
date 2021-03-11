@@ -45,7 +45,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 
 
 
-const scriptVersion = 7;
+const scriptVersion = 8;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
