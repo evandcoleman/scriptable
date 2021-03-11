@@ -25,7 +25,7 @@ const LAYOUT = "expanded";
 import Cache from './lib/cache';
 import Updater from './lib/updater';
 
-const scriptVersion = 2;
+const scriptVersion = 3;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
