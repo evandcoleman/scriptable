@@ -125,7 +125,7 @@ async function createExpandedWidget() {
   inningStack.centerAlignContent();
 
   if (isPlaying) {
-    inningStack.addSpacer();
+    inningStack.addSpacer(12);
     const arrowText = inningStack.addText(game.linescore.isTopInning ? '▲' : '▼');
     arrowText.font = Font.regularSystemFont(10);
     arrowText.textColor = Color.lightGray();
@@ -136,7 +136,6 @@ async function createExpandedWidget() {
 
     const basesStack = statusStack.addStack();
     basesStack.layoutHorizontally();
-    basesStack.addSpacer();
     const bases = getBasesImage(game);
     const basesWidgetImage = basesStack.addImage(bases);
     basesWidgetImage.rightAlignImage();
