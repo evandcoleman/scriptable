@@ -1,7 +1,8 @@
 export default class Cache {
-  constructor(name) {
+  constructor(name, expirationMinutes) {
     this.fm = FileManager.iCloud();
     this.cachePath = this.fm.joinPath(this.fm.documentsDirectory(), name);
+    this.expirationMinutes = expirationMinutes;
 
     if (!this.fm.fileExists(this.cachePath)) {
       this.fm.createDirectory(this.cachePath)
@@ -14,8 +15,8 @@ export default class Cache {
       await this.fm.downloadFileFromiCloud(path);
       const createdAt = this.fm.creationDate(path);
       
-      if (expirationMinutes) {
-        if ((new Date()) - createdAt > (expirationMinutes * 60000)) {
+      if (this.expirationMinutes || expirationMinutes) {
+        if ((new Date()) - createdAt > ((this.expirationMinutes || expirationMinutes) * 60000)) {
           this.fm.remove(path);
           return null;
         }

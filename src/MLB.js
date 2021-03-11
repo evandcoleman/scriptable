@@ -11,6 +11,7 @@
 // PLEASE READ - To set your team:
 // Long-press on the widget on your homescreen, then tap "Edit Widget"
 // Input your team abbreviation in the "Parameter" field.
+// Set "When Interacting" to "Run Script" if you want taps to route to the MLB app.
 // Find team abbreviation here: https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Baseball/Team_abbreviations
 
 /////////////////////////
@@ -30,8 +31,9 @@ const LAYOUT = "expanded";
 
 import Cache from './lib/cache';
 import Updater from './lib/updater';
+import * as http from './lib/http';
 
-const scriptVersion = 6;
+const scriptVersion = 7;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -41,10 +43,10 @@ const scriptName = "MLB";
 //
 /////////////////////////////////////////
 
-const cache = new Cache("mlbWidgetCache");
+const cache = new Cache("mlbWidgetCache", 2);
+const updater = new Updater(sourceRepo);
 
 try {
-  const updater = new Updater(sourceRepo);
   const widget = await (async (layout) => {
     switch (layout) {
       case 'simple':
@@ -55,9 +57,13 @@ try {
         throw new Error(`Invalid layout type ${layout}`);
     }
   })(LAYOUT);
-  widget.url = "atbat://"
+  widget.url = "mlbatbat://"
   Script.setWidget(widget);
+} catch (error) {
+  console.log(error);
+}
 
+try {
   await updater.checkForUpdate(scriptName, scriptVersion);
 } catch (error) {
   console.log(error);
@@ -549,7 +555,11 @@ async function fetchScoreboard(inDays) {
   const date = now.getHours() < 5 ? new Date(now.getTime() - 43200000) : new Date(now.getTime() + (86400000 * (inDays || 0)));
   const dateString = df.string(date);
   const url = `https://statsapi.mlb.com/api/v1/schedule?date=${dateString}&language=en&hydrate=team(league),venue(location,timezone),linescore(matchup,runners,positions),decisions,homeRuns,probablePitcher,flags,review,seriesStatus,person,stats,broadcasts(all)&sportId=1`;
-  const data = await fetchJson(`mlb_scores_${TEAM}`, url);
+  const data = await http.fetchJson({
+    cache,
+    url,
+    cacheKey: `mlb_scores_${TEAM}`,
+  });
 
   return data.dates[0].games;
 }
@@ -557,26 +567,4 @@ async function fetchScoreboard(inDays) {
 async function fetchTeamLogo(team) {
   const req = new Request(`https://a.espncdn.com/i/teamlogos/mlb/500/${team.toLowerCase()}.png`);
   return req.loadImage();
-}
-
-async function fetchJson(key, url, headers, cacheTimeout) {
-  const cached = await cache.read(key, cacheTimeout || 1);
-  if (cached) {
-    return cached;
-  }
-
-  try {
-    console.log(`Fetching url: ${url}`);
-    const req = new Request(url);
-    req.headers = headers;
-    const resp = await req.loadJSON();
-    cache.write(key, resp);
-    return resp;
-  } catch (error) {
-    try {
-      return cache.read(key, cacheTimeout || 1);
-    } catch (error) {
-      console.log(`Couldn't fetch ${url}`);
-    }
-  }
 }

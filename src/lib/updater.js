@@ -1,7 +1,11 @@
+import Cache from './cache';
+import * as http from './http';
+
 export default class Updater {
   constructor(repo) {
     this.repo = repo;
     this.fm = FileManager.iCloud();
+    this.cache = new Cache("edcWidgetUpdaterCache", 15);
   }
 
   async checkForUpdate(name, version) {
@@ -14,15 +18,18 @@ export default class Updater {
       return true;
     }
 
-    console.log(`Version ${latestVersion} is equal to ${version}. Skipping update.`);
+    console.log(`Version ${version} is not newer than ${latestVersion}. Skipping update.`);
 
     return false;
   }
 
   async getLatestVersion(name) {
     const url = `https://api.github.com/repos/${this.repo}/releases`;
-    const req = new Request(url);
-    const data = await req.loadJSON();
+    const data = await http.fetchJson({
+      url,
+      cache: this.cache,
+      cacheKey: name
+    });
 
     if (!data || data.length === 0) {
       return null;

@@ -11,6 +11,7 @@
 // PLEASE READ - To set your team:
 // Long-press on the widget on your homescreen, then tap "Edit Widget"
 // Input your team abbreviation in the "Parameter" field.
+// Set "When Interacting" to "Run Script" if you want taps to route to the MLB app.
 // Find team abbreviation here: https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Baseball/Team_abbreviations
 
 /////////////////////////
@@ -37,12 +38,14 @@ const LAYOUT = "expanded";
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 /* harmony import */ var _lib_cache__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(59);
 /* harmony import */ var _lib_updater__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(331);
+/* harmony import */ var _lib_http__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(630);
 
 
 
 
 
-const scriptVersion = 6;
+
+const scriptVersion = 7;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -52,10 +55,10 @@ const scriptName = "MLB";
 //
 /////////////////////////////////////////
 
-const cache = new _lib_cache__WEBPACK_IMPORTED_MODULE_0__/* .default */ .Z("mlbWidgetCache");
+const cache = new _lib_cache__WEBPACK_IMPORTED_MODULE_0__/* .default */ .Z("mlbWidgetCache", 2);
+const updater = new _lib_updater__WEBPACK_IMPORTED_MODULE_1__/* .default */ .Z(sourceRepo);
 
 try {
-  const updater = new _lib_updater__WEBPACK_IMPORTED_MODULE_1__/* .default */ .Z(sourceRepo);
   const widget = await (async (layout) => {
     switch (layout) {
       case 'simple':
@@ -66,9 +69,13 @@ try {
         throw new Error(`Invalid layout type ${layout}`);
     }
   })(LAYOUT);
-  widget.url = "atbat://"
+  widget.url = "mlbatbat://"
   Script.setWidget(widget);
+} catch (error) {
+  console.log(error);
+}
 
+try {
   await updater.checkForUpdate(scriptName, scriptVersion);
 } catch (error) {
   console.log(error);
@@ -560,7 +567,11 @@ async function fetchScoreboard(inDays) {
   const date = now.getHours() < 5 ? new Date(now.getTime() - 43200000) : new Date(now.getTime() + (86400000 * (inDays || 0)));
   const dateString = df.string(date);
   const url = `https://statsapi.mlb.com/api/v1/schedule?date=${dateString}&language=en&hydrate=team(league),venue(location,timezone),linescore(matchup,runners,positions),decisions,homeRuns,probablePitcher,flags,review,seriesStatus,person,stats,broadcasts(all)&sportId=1`;
-  const data = await fetchJson(`mlb_scores_${TEAM}`, url);
+  const data = await _lib_http__WEBPACK_IMPORTED_MODULE_2__/* .fetchJson */ .r({
+    cache,
+    url,
+    cacheKey: `mlb_scores_${TEAM}`,
+  });
 
   return data.dates[0].games;
 }
@@ -568,28 +579,6 @@ async function fetchScoreboard(inDays) {
 async function fetchTeamLogo(team) {
   const req = new Request(`https://a.espncdn.com/i/teamlogos/mlb/500/${team.toLowerCase()}.png`);
   return req.loadImage();
-}
-
-async function fetchJson(key, url, headers, cacheTimeout) {
-  const cached = await cache.read(key, cacheTimeout || 1);
-  if (cached) {
-    return cached;
-  }
-
-  try {
-    console.log(`Fetching url: ${url}`);
-    const req = new Request(url);
-    req.headers = headers;
-    const resp = await req.loadJSON();
-    cache.write(key, resp);
-    return resp;
-  } catch (error) {
-    try {
-      return cache.read(key, cacheTimeout || 1);
-    } catch (error) {
-      console.log(`Couldn't fetch ${url}`);
-    }
-  }
 }
 
 __webpack_handle_async_dependencies__();
@@ -604,9 +593,10 @@ __webpack_handle_async_dependencies__();
 /* harmony export */   "Z": () => (/* binding */ Cache)
 /* harmony export */ });
 class Cache {
-  constructor(name) {
+  constructor(name, expirationMinutes) {
     this.fm = FileManager.iCloud();
     this.cachePath = this.fm.joinPath(this.fm.documentsDirectory(), name);
+    this.expirationMinutes = expirationMinutes;
 
     if (!this.fm.fileExists(this.cachePath)) {
       this.fm.createDirectory(this.cachePath)
@@ -619,8 +609,8 @@ class Cache {
       await this.fm.downloadFileFromiCloud(path);
       const createdAt = this.fm.creationDate(path);
       
-      if (expirationMinutes) {
-        if ((new Date()) - createdAt > (expirationMinutes * 60000)) {
+      if (this.expirationMinutes || expirationMinutes) {
+        if ((new Date()) - createdAt > ((this.expirationMinutes || expirationMinutes) * 60000)) {
           this.fm.remove(path);
           return null;
         }
@@ -653,16 +643,63 @@ class Cache {
 
 /***/ }),
 
+/***/ 630:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "r": () => (/* binding */ fetchJson)
+/* harmony export */ });
+async function fetchJson({ url, headers, cache, cacheKey, cacheExpiration }) {
+  if (cache && cacheKey) {
+    const cached = await cache.read(cacheKey, cacheExpiration);
+    if (cached) {
+      return cached;
+    }
+  }
+
+  try {
+    console.log(`Fetching url: ${url}`);
+    const req = new Request(url);
+    if (headers) {
+      req.headers = headers;
+    }
+    const resp = await req.loadJSON();
+    if (cache && cacheKey) {
+      cache.write(key, resp);
+    }
+    return resp;
+  } catch (error) {
+    if (cache && cacheKey) {
+      try {
+        return cache.read(key, cacheTimeout || 1);
+      } catch (error) {
+        console.log(`Couldn't fetch ${url}`);
+      }
+    } else {
+      console.log(error);
+    }
+  }
+}
+
+
+/***/ }),
+
 /***/ 331:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Z": () => (/* binding */ Updater)
 /* harmony export */ });
+/* harmony import */ var _cache__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(59);
+/* harmony import */ var _http__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(630);
+
+
+
 class Updater {
   constructor(repo) {
     this.repo = repo;
     this.fm = FileManager.iCloud();
+    this.cache = new _cache__WEBPACK_IMPORTED_MODULE_0__/* .default */ .Z("edcWidgetUpdaterCache", 15);
   }
 
   async checkForUpdate(name, version) {
@@ -675,15 +712,18 @@ class Updater {
       return true;
     }
 
-    console.log(`Version ${latestVersion} is equal to ${version}. Skipping update.`);
+    console.log(`Version ${version} is not newer than ${latestVersion}. Skipping update.`);
 
     return false;
   }
 
   async getLatestVersion(name) {
     const url = `https://api.github.com/repos/${this.repo}/releases`;
-    const req = new Request(url);
-    const data = await req.loadJSON();
+    const data = await _http__WEBPACK_IMPORTED_MODULE_1__/* .fetchJson */ .r({
+      url,
+      cache: this.cache,
+      cacheKey: name
+    });
 
     if (!data || data.length === 0) {
       return null;
