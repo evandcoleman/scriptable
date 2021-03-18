@@ -33,7 +33,7 @@ import Cache from './lib/cache';
 import Updater from './lib/updater';
 import * as http from './lib/http';
 
-const scriptVersion = 10;
+const scriptVersion = 11;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -60,13 +60,13 @@ try {
   widget.url = "mlbatbat://"
   Script.setWidget(widget);
 } catch (error) {
-  console.log(error);
+  console.log(`${error.line}: ${error.message}`);
 }
 
 try {
   await updater.checkForUpdate(scriptName, scriptVersion);
 } catch (error) {
-  console.log(error);
+  console.log(`${error.line}: ${error.message}`);
 }
 
 Script.complete();
@@ -558,7 +558,7 @@ async function fetchScoreboard(inDays) {
   const data = await http.fetchJson({
     cache,
     url,
-    cacheKey: `mlb_scores_${TEAM}`,
+    cacheKey: `mlb_scores_${TEAM}_${inDays}`,
   });
 
   return data.dates[0].games;
