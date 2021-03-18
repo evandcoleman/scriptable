@@ -33,7 +33,7 @@ import Cache from './lib/cache';
 import Updater from './lib/updater';
 import * as http from './lib/http';
 
-const scriptVersion = 11;
+const scriptVersion = 12;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 

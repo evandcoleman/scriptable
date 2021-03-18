@@ -45,7 +45,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 
 
 
-const scriptVersion = 10;
+const scriptVersion = 12;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -72,13 +72,13 @@ try {
   widget.url = "mlbatbat://"
   Script.setWidget(widget);
 } catch (error) {
-  console.log(error);
+  console.log(`${error.line}: ${error.message}`);
 }
 
 try {
   await updater.checkForUpdate(scriptName, scriptVersion);
 } catch (error) {
-  console.log(error);
+  console.log(`${error.line}: ${error.message}`);
 }
 
 Script.complete();
@@ -570,7 +570,7 @@ async function fetchScoreboard(inDays) {
   const data = await _lib_http__WEBPACK_IMPORTED_MODULE_2__/* .fetchJson */ .r({
     cache,
     url,
-    cacheKey: `mlb_scores_${TEAM}`,
+    cacheKey: `mlb_scores_${TEAM}_${inDays}`,
   });
 
   return data.dates[0].games;
