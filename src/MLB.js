@@ -33,7 +33,7 @@ import Cache from './lib/cache';
 import Updater from './lib/updater';
 import * as http from './lib/http';
 
-const scriptVersion = 12;
+const scriptVersion = 13;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -561,7 +561,7 @@ async function fetchScoreboard(inDays) {
     cacheKey: `mlb_scores_${TEAM}_${inDays}`,
   });
 
-  return data.dates[0].games;
+  return data.dates[0]?.games || [];
 }
 
 async function fetchTeamLogo(team) {

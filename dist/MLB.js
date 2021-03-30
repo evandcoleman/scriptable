@@ -45,7 +45,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 
 
 
-const scriptVersion = 12;
+const scriptVersion = 13;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -573,7 +573,7 @@ async function fetchScoreboard(inDays) {
     cacheKey: `mlb_scores_${TEAM}_${inDays}`,
   });
 
-  return data.dates[0].games;
+  return data.dates[0]?.games || [];
 }
 
 async function fetchTeamLogo(team) {
