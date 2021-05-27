@@ -45,7 +45,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 
 
 
-const scriptVersion = 13;
+const scriptVersion = 14;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -94,11 +94,11 @@ async function createExpandedWidget() {
   const { game, team } = await fetchTeam(TEAM);
   const awayLogo = await fetchTeamLogo(game.teams.away.team.abbreviation);
   const homeLogo = await fetchTeamLogo(game.teams.home.team.abbreviation);
-  const { gameStatus, isPlaying, isPreGame, isPostGame } = getFormattedStatus(game);
+  const { gameStatus, isPlaying, isPreGame, isPostGame, isPPD } = getFormattedStatus(game);
 
   const upperStack = mainStack.addStack();
 
-  if (!isPreGame) {
+  if (!isPreGame && !isPPD) {
     upperStack.layoutHorizontally();
     const scoreStack = upperStack.addStack();
     scoreStack.layoutVertically();
@@ -108,9 +108,11 @@ async function createExpandedWidget() {
     const awayLogoImage = awayStack.addImage(awayLogo);
     awayLogoImage.imageSize = new Size(32, 32);
     awayStack.addSpacer(6);
-    const awayRuns = awayStack.addText(`${game.linescore.teams.away.runs || 0}`);
-    awayRuns.font = Font.boldSystemFont(28);
-    awayRuns.textColor = Color.white();
+    if (game.linescore) {
+      const awayRuns = awayStack.addText(`${game.linescore.teams.away.runs || 0}`);
+      awayRuns.font = Font.boldSystemFont(28);
+      awayRuns.textColor = Color.white();
+    }
 
     const spacer = scoreStack.addSpacer();
     spacer.length = 6;
@@ -120,9 +122,11 @@ async function createExpandedWidget() {
     const homeLogoImage = homeStack.addImage(homeLogo);
     homeLogoImage.imageSize = new Size(32, 32);
     homeStack.addSpacer(6);
-    const homeRuns = homeStack.addText(`${game.linescore.teams.home.runs || 0}`);
-    homeRuns.font = Font.boldSystemFont(28);
-    homeRuns.textColor = Color.white();
+    if (game.linescore) {
+      const homeRuns = homeStack.addText(`${game.linescore.teams.home.runs || 0}`);
+      homeRuns.font = Font.boldSystemFont(28);
+      homeRuns.textColor = Color.white();
+    }
   } else {
     upperStack.layoutVertically();
 
@@ -175,7 +179,7 @@ async function createExpandedWidget() {
       const widgetImage = outsStack.addImage(outImages[index]);
       widgetImage.imageSize = new Size(6, 6);
     }
-  } else if (isPreGame) {
+  } else if (isPreGame || isPPD) {
     inningStack.addSpacer();
     const statusText = inningStack.addText(gameStatus);
     statusText.font = Font.regularSystemFont(11);
@@ -225,7 +229,7 @@ async function createExpandedWidget() {
     pitchesThrownText.font = Font.regularSystemFont(10);
     pitchesThrownText.textColor = Color.lightGray();
     namePitchesStack.addSpacer();
-  } else if (isPreGame) {
+  } else if (isPreGame || isPPD) {
     const abTitleText = lowerStack.addText("Away Pitcher:")
     abTitleText.font = Font.mediumSystemFont(11);
     abTitleText.textColor = Color.lightGray();
@@ -238,10 +242,12 @@ async function createExpandedWidget() {
     // playerNameText.minimumScaleFactor = 0.9;
     if (game.teams.away.probablePitcher) {
       nameCountStack.addSpacer(4);
-      const winnerStats = game.teams.away.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
-      const countText = nameCountStack.addText(`(${winnerStats.wins}-${winnerStats.losses})`);
-      countText.font = Font.regularSystemFont(10);
-      countText.textColor = Color.lightGray();
+      if (game.teams.away.probablePitcher.stats) {
+        const winnerStats = game.teams.away.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
+        const countText = nameCountStack.addText(`(${winnerStats.wins}-${winnerStats.losses})`);
+        countText.font = Font.regularSystemFont(10);
+        countText.textColor = Color.lightGray();
+      }
     }
     nameCountStack.addSpacer();
 
@@ -257,10 +263,12 @@ async function createExpandedWidget() {
     // pitcherNameText.minimumScaleFactor = 0.9;
     if (game.teams.home.probablePitcher) {
       namePitchesStack.addSpacer(4);
-      const loserStats = game.teams.home.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
-      const pitchesThrownText = namePitchesStack.addText(`(${loserStats.wins}-${loserStats.losses})`);
-      pitchesThrownText.font = Font.regularSystemFont(10);
-      pitchesThrownText.textColor = Color.lightGray();
+      if (game.teams.home.probablePitcher.stats) {
+        const loserStats = game.teams.home.probablePitcher.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
+        const pitchesThrownText = namePitchesStack.addText(`(${loserStats.wins}-${loserStats.losses})`);
+        pitchesThrownText.font = Font.regularSystemFont(10);
+        pitchesThrownText.textColor = Color.lightGray();
+      }
     }
     namePitchesStack.addSpacer();
   } else if (isPostGame) {
@@ -369,22 +377,27 @@ function getFormattedStatus(game, opts) {
   const options = opts || {};
   const status = game.status.abstractGameState;
   const shortStatus = game.status.abstractGameCode;
-  const innings = game.linescore.innings.length;
+  const innings = (game.linescore || { innings: [] }).innings.length;
   const short = options.short || false;
 
   let statusText;
   let isPlaying = false;
   let isPreGame = false;
   let isPostGame = false;
+  let isPPD = false;
   switch (status) {
     case "Final":
     case "Completed Early":
     case "Game Over":
       isPostGame = true;
+      isPPD = game.status.detailedState === "Postponed";
       if (innings !== 9) {
         statusText = `${short ? shortStatus : status}/${innings}`;
       } else {
         statusText = short ? shortStatus : status;
+      }
+      if (isPPD) {
+        statusText = game.status.detailedState;
       }
       break;
     case "Delayed":
@@ -434,6 +447,7 @@ function getFormattedStatus(game, opts) {
     isPlaying,
     isPreGame,
     isPostGame,
+    isPPD,
   }
 }
 
