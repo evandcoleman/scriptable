@@ -33,7 +33,7 @@ import Cache from './lib/cache';
 import Updater from './lib/updater';
 import * as http from './lib/http';
 
-const scriptVersion = 14;
+const scriptVersion = 15;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -539,19 +539,24 @@ function getOutsImages(game) {
 
 async function fetchTeam(team) {
   let game;
-  let days = 0;
 
-  while (!game && days < 7) {
-    let scoreboard = await fetchScoreboard(days);
-    const games = scoreboard.filter(game => {
-      const away = game.teams.away.team.abbreviation;
-      const home = game.teams.home.team.abbreviation;
+  // Find a game within 14 days for the provided team
+  game = await fetchGameWithinDays(14, { team });
 
-      return team === away || team === home;
-    });
+  // If the provided team has no upcoming games, pick the first game
+  // that's currently in-progress
+  if (!game) {
+    game = await fetchGameWithinDays(14, { inProgress: true });
+  }
 
-    game = games[0];
-    days += 1;
+  // Just get the first game in the list
+  if (!game) {
+    game = await fetchGameWithinDays(14);
+  }
+
+  // Get the last game of the provided team
+  if (!game) {
+    game = await fetchGameWithinDays(180, { team, backwards: true });
   }
 
   const isHome = game.teams.home.team.abbreviation === team;
@@ -560,6 +565,44 @@ async function fetchTeam(team) {
     game,
     team: isHome ? game.teams.home.team : game.teams.away.team,
   };
+}
+
+async function fetchGameWithinDays(maxDays, options) {
+  var game = null;
+  let days = options?.backwards == true ? maxDays - 1 : 0;
+
+  while (!game && days < maxDays && days >= 0) {
+    let scoreboard = await fetchScoreboard(days);
+    var games = [];
+    
+    if (options?.team) {
+      games = scoreboard.filter(game => {
+        const away = game.teams.away.team.abbreviation;
+        const home = game.teams.home.team.abbreviation;
+
+        return options.team === away || options.team === home;
+      });
+    } else if (options?.inProgress) {
+      games = scoreboard.filter(game => {
+        const { isPlaying } = getFormattedStatus(game);
+
+        return isPlaying;
+      });
+    } else if (scoreboard.length > 0) {
+      games = scoreboard;
+    }
+
+    game = games[0];
+    
+
+    if (options?.backwards == true) {
+      days -= 1;
+    } else {
+      days += 1;
+    }
+  }
+
+  return game;
 }
 
 async function fetchScoreboard(inDays) {
