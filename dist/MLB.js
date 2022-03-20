@@ -45,7 +45,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__) => {
 
 
 
-const scriptVersion = 15;
+const scriptVersion = 16;
 const sourceRepo = "evandcoleman/scriptable";
 const scriptName = "MLB";
 
@@ -271,22 +271,24 @@ async function createExpandedWidget() {
       }
     }
     namePitchesStack.addSpacer();
-  } else if (isPostGame) {
+  } else if (isPostGame && game.decisions) {
     const abTitleText = lowerStack.addText("Winning Pitcher:")
     abTitleText.font = Font.mediumSystemFont(11);
     abTitleText.textColor = Color.lightGray();
     const nameCountStack = lowerStack.addStack();
     nameCountStack.layoutHorizontally();
     nameCountStack.centerAlignContent();
-    const playerNameText = nameCountStack.addText(game.decisions.winner.fullName);
+    const playerNameText = nameCountStack.addText(game.decisions.winner?.fullName || "N/A");
     playerNameText.font = Font.regularSystemFont(12);
     playerNameText.textColor = Color.white();
     // playerNameText.minimumScaleFactor = 0.9;
     nameCountStack.addSpacer(4);
-    const winnerStats = game.decisions.winner.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
-    const countText = nameCountStack.addText(`(${winnerStats.wins}-${winnerStats.losses})`);
-    countText.font = Font.regularSystemFont(10);
-    countText.textColor = Color.lightGray();
+    if (game.decisions.winner && game.decisions.winner.stats) {
+      const winnerStats = game.decisions.winner.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
+      const countText = nameCountStack.addText(`(${winnerStats.wins}-${winnerStats.losses})`);
+      countText.font = Font.regularSystemFont(10);
+      countText.textColor = Color.lightGray();
+    }
     nameCountStack.addSpacer();
 
     const pitcherTitleText = lowerStack.addText("Losing Pitcher:")
@@ -295,15 +297,17 @@ async function createExpandedWidget() {
     const namePitchesStack = lowerStack.addStack();
     namePitchesStack.layoutHorizontally();
     namePitchesStack.centerAlignContent();
-    const pitcherNameText = namePitchesStack.addText(game.decisions.loser.fullName);
+    const pitcherNameText = namePitchesStack.addText(game.decisions.loser?.fullName || "N/A");
     pitcherNameText.font = Font.regularSystemFont(12);
     pitcherNameText.textColor = Color.white();
     // pitcherNameText.minimumScaleFactor = 0.9;
     namePitchesStack.addSpacer(4);
-    const loserStats = game.decisions.loser.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
-    const pitchesThrownText = namePitchesStack.addText(`(${loserStats.wins}-${loserStats.losses})`);
-    pitchesThrownText.font = Font.regularSystemFont(10);
-    pitchesThrownText.textColor = Color.lightGray();
+    if (game.decisions.loser && game.decisions.loser.stats) {
+      const loserStats = game.decisions.loser.stats.filter(stat => stat.type.displayName === 'statsSingleSeason' && stat.group.displayName === 'pitching')[0].stats;
+      const pitchesThrownText = namePitchesStack.addText(`(${loserStats.wins}-${loserStats.losses})`);
+      pitchesThrownText.font = Font.regularSystemFont(10);
+      pitchesThrownText.textColor = Color.lightGray();
+    }
     namePitchesStack.addSpacer();
   }
 
